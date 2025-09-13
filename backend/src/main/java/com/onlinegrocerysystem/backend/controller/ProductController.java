@@ -41,9 +41,14 @@ public class ProductController {
     }
 
     @PostMapping("/addProduct")
-    public String addProduct(@RequestBody Product product) {
-        productService.addProduct(product);
+    public String addProduct(@RequestBody Product product, @RequestParam Long vendorId) {
+        productService.addProduct(product, vendorId);
         return "Product added successfully";
+    }
+
+    @GetMapping("/vendor/{vendorId}")
+    public List<Product> getProductsByVendor(@PathVariable Long vendorId) {
+        return productService.getProductsByVendor(vendorId);
     }
 
     @DeleteMapping("/deleteProduct/{id}")

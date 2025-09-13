@@ -1,60 +1,44 @@
 import React, { useState } from 'react';
-import { Package, DollarSign, Hash, FileText, Tag, Image, Save, X } from 'lucide-react';
-import { formatProductCategory } from '../../../vendorMockData';
+import { Package, DollarSign, Hash, FileText, Save, X } from 'lucide-react';
 
 const ProductForm = ({ product, onSave, onCancel }) => {
   const [formData, setFormData] = useState({
     name: product?.name || '',
     description: product?.description || '',
-    category: product?.category || 'fruits_vegetables',
     price: product?.price || '',
-    originalPrice: product?.originalPrice || '',
-    stockQuantity: product?.stockQuantity || '',
-    lowStockThreshold: product?.lowStockThreshold || 10,
-    image: product?.image || '',
-    status: product?.status || 'active'
+    stock: product?.stock || '',
+    imageUrl: product?.imageUrl || ''
   });
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
-  const categories = [
-    { value: 'fruits_vegetables', label: 'Fruits & Vegetables' },
-    { value: 'dairy_eggs', label: 'Dairy & Eggs' },
-    { value: 'meat_seafood', label: 'Meat & Seafood' },
-    { value: 'bakery', label: 'Bakery' },
-    { value: 'beverages', label: 'Beverages' },
-    { value: 'snacks', label: 'Snacks' },
-    { value: 'pantry', label: 'Pantry' },
-    { value: 'frozen', label: 'Frozen' }
-  ];
+
 
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.name.trim()) {
+    if (!formData.name || !formData.name.trim()) {
       newErrors.name = 'Product name is required';
     }
 
-    if (!formData.description.trim()) {
+    if (!formData.description || !formData.description.trim()) {
       newErrors.description = 'Product description is required';
     }
 
-    if (!formData.price || formData.price <= 0) {
+    if (!formData.price || isNaN(formData.price) || parseFloat(formData.price) <= 0) {
       newErrors.price = 'Valid price is required';
     }
 
-    if (formData.originalPrice && formData.originalPrice < formData.price) {
-      newErrors.originalPrice = 'Original price should be higher than current price';
+    if (!formData.stock || isNaN(formData.stock) || parseInt(formData.stock) < 0) {
+      newErrors.stock = 'Valid stock quantity is required';
     }
 
-    if (!formData.stockQuantity || formData.stockQuantity < 0) {
-      newErrors.stockQuantity = 'Valid stock quantity is required';
+    if (!formData.imageUrl || !formData.imageUrl.trim()) {
+      newErrors.imageUrl = 'Product image URL is required';
     }
 
-    if (!formData.image.trim()) {
-      newErrors.image = 'Product image URL is required';
-    }
-
+    console.log('Form validation errors:', newErrors);
+    console.log('Form data:', formData);
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -63,9 +47,7 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: name.includes('price') || name.includes('Quantity') || name.includes('Threshold') 
-        ? parseFloat(value) || '' 
-        : value
+      [name]: value
     }));
     
     if (errors[name]) {
@@ -80,12 +62,19 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     e.preventDefault();
     
     if (!validateForm()) {
+      console.log('Form validation failed');
       return;
     }
 
     setIsLoading(true);
     try {
-      await onSave(formData);
+      const submitData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        stock: parseInt(formData.stock)
+      };
+      console.log('Submitting product data:', submitData);
+      await onSave(submitData);
     } catch (error) {
       console.error('Error saving product:', error);
     } finally {
@@ -153,164 +142,76 @@ const ProductForm = ({ product, onSave, onCancel }) => {
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
         </div>
 
-        {/* Category and Status */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-              Category *
-            </label>
-            <div className="relative">
-              <Tag className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <select
-                id="category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-              >
-                {categories.map(category => (
-                  <option key={category.value} value={category.value}>
-                    {category.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
 
-          <div>
-            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-              Status
-            </label>
-            <select
-              id="status"
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full px-3 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-        </div>
 
-        {/* Pricing */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
-              Current Price * ($)
-            </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="number"
-                id="price"
-                name="price"
-                value={formData.price}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                  errors.price ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="0.00"
-              />
-            </div>
-            {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="originalPrice" className="block text-sm font-medium text-gray-700 mb-2">
-              Original Price ($)
-            </label>
-            <div className="relative">
-              <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="number"
-                id="originalPrice"
-                name="originalPrice"
-                value={formData.originalPrice}
-                onChange={handleChange}
-                step="0.01"
-                min="0"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                  errors.originalPrice ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="0.00"
-              />
-            </div>
-            {errors.originalPrice && <p className="mt-1 text-sm text-red-600">{errors.originalPrice}</p>}
-          </div>
-        </div>
-
-        {/* Inventory */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label htmlFor="stockQuantity" className="block text-sm font-medium text-gray-700 mb-2">
-              Stock Quantity *
-            </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="number"
-                id="stockQuantity"
-                name="stockQuantity"
-                value={formData.stockQuantity}
-                onChange={handleChange}
-                min="0"
-                className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                  errors.stockQuantity ? 'border-red-300' : 'border-gray-300'
-                }`}
-                placeholder="0"
-              />
-            </div>
-            {errors.stockQuantity && <p className="mt-1 text-sm text-red-600">{errors.stockQuantity}</p>}
-          </div>
-
-          <div>
-            <label htmlFor="lowStockThreshold" className="block text-sm font-medium text-gray-700 mb-2">
-              Low Stock Alert Threshold
-            </label>
-            <div className="relative">
-              <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="number"
-                id="lowStockThreshold"
-                name="lowStockThreshold"
-                value={formData.lowStockThreshold}
-                onChange={handleChange}
-                min="0"
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
-                placeholder="10"
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Product Image */}
+        {/* Price */}
         <div>
-          <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
-            Product Image URL *
+          <label htmlFor="price" className="block text-sm font-medium text-gray-700 mb-2">
+            Price * ($)
           </label>
           <div className="relative">
-            <Image className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
-              type="url"
-              id="image"
-              name="image"
-              value={formData.image}
+              type="number"
+              id="price"
+              name="price"
+              value={formData.price}
               onChange={handleChange}
+              step="0.01"
+              min="0"
               className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
-                errors.image ? 'border-red-300' : 'border-gray-300'
+                errors.price ? 'border-red-300' : 'border-gray-300'
               }`}
-              placeholder="https://example.com/image.jpg"
+              placeholder="0.00"
             />
           </div>
-          {errors.image && <p className="mt-1 text-sm text-red-600">{errors.image}</p>}
-          {formData.image && (
+          {errors.price && <p className="mt-1 text-sm text-red-600">{errors.price}</p>}
+        </div>
+
+        {/* Stock */}
+        <div>
+          <label htmlFor="stock" className="block text-sm font-medium text-gray-700 mb-2">
+            Stock Quantity *
+          </label>
+          <div className="relative">
+            <Hash className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <input
+              type="number"
+              id="stock"
+              name="stock"
+              value={formData.stock}
+              onChange={handleChange}
+              min="0"
+              className={`w-full pl-10 pr-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
+                errors.stock ? 'border-red-300' : 'border-gray-300'
+              }`}
+              placeholder="0"
+            />
+          </div>
+          {errors.stock && <p className="mt-1 text-sm text-red-600">{errors.stock}</p>}
+        </div>
+
+        {/* Image URL */}
+        <div>
+          <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700 mb-2">
+            Product Image URL *
+          </label>
+          <input
+            type="url"
+            id="imageUrl"
+            name="imageUrl"
+            value={formData.imageUrl}
+            onChange={handleChange}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
+              errors.imageUrl ? 'border-red-300' : 'border-gray-300'
+            }`}
+            placeholder="https://example.com/image.jpg"
+          />
+          {errors.imageUrl && <p className="mt-1 text-sm text-red-600">{errors.imageUrl}</p>}
+          {formData.imageUrl && (
             <div className="mt-2">
               <img
-                src={formData.image}
+                src={formData.imageUrl}
                 alt="Product preview"
                 className="w-20 h-20 object-cover rounded-lg border border-gray-200"
                 onError={(e) => {
@@ -320,6 +221,8 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             </div>
           )}
         </div>
+
+
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">

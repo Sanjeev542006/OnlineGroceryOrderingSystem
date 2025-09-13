@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, getRoleBasedRedirect } from '../contexts/AuthContext';
 import { Eye, EyeOff, Mail, Lock, AlertCircle } from 'lucide-react';
 
 const LoginPage = () => {
@@ -34,7 +34,8 @@ const LoginPage = () => {
     try {
       const result = await login(formData);
       if (result.success) {
-        navigate(from, { replace: true });
+        const redirectPath = getRoleBasedRedirect(result.user.role);
+        navigate(redirectPath, { replace: true });
       } else {
         setError(result.message || 'Login failed');
       }
@@ -45,16 +46,6 @@ const LoginPage = () => {
     }
   };
 
-  const demoCredentials = [
-    { email: 'customer@grocery.com', role: 'Customer', password: 'password' },
-    { email: 'vendor@grocery.com', role: 'Vendor', password: 'password' },
-    { email: 'admin@grocery.com', role: 'Admin', password: 'password' }
-  ];
-
-  const fillDemoCredentials = (email) => {
-    setFormData({ email, password: 'password' });
-    setError('');
-  };
 
   return (
     <div>
@@ -64,7 +55,7 @@ const LoginPage = () => {
       </div>
 
       {/* Demo Credentials */}
-      <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+      {/* <div className="mb-6 p-4 bg-blue-50 rounded-lg">
         <h3 className="text-sm font-medium text-blue-900 mb-2">Demo Accounts:</h3>
         <div className="space-y-2">
           {demoCredentials.map((cred, index) => (
@@ -77,7 +68,7 @@ const LoginPage = () => {
             </button>
           ))}
         </div>
-      </div>
+      </div> */}
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && (

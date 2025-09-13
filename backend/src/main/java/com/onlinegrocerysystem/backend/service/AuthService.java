@@ -8,7 +8,9 @@ import com.onlinegrocerysystem.backend.dto.LoginRequest;
 import com.onlinegrocerysystem.backend.dto.RegisterRequest;
 import com.onlinegrocerysystem.backend.entity.Role;
 import com.onlinegrocerysystem.backend.entity.User;
+import com.onlinegrocerysystem.backend.entity.Vendor;
 import com.onlinegrocerysystem.backend.repository.UserRepo;
+import com.onlinegrocerysystem.backend.repository.VendorRepo;
 import com.onlinegrocerysystem.backend.security.JwtUtil;
 
 @Service
@@ -23,6 +25,9 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private VendorRepo vendorRepository;
+
     // 🔹 Register user
     public String register(RegisterRequest req) {
         if (userRepository.findByEmail(req.getEmail()) != null) {
@@ -36,7 +41,16 @@ public class AuthService {
         user.setRole(req.getRole() == null ? Role.CUSTOMER : Role.valueOf(req.getRole()));
         user.setAddress(req.getAddress()); // ✅ fixed
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        
+        // Create vendor if role is VENDOR
+        if (savedUser.getRole() == Role.VENDOR) {
+            Vendor vendor = new Vendor();
+            vendor.setUser(savedUser);
+            vendor.setName(savedUser.getName());
+            vendorRepository.save(vendor);
+        }
+        
         return "User registered successfully";
     }
 

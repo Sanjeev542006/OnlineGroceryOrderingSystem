@@ -47,29 +47,40 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       
-      // Mock authentication logic
-      const mockUsers = {
-        'admin@grocery.com': { id: 1, email: 'admin@grocery.com', role: 'ADMIN', name: 'Admin User' },
-        'vendor@grocery.com': { id: 2, email: 'vendor@grocery.com', role: 'VENDOR', name: 'Vendor User' },
-        'customer@grocery.com': { id: 3, email: 'customer@grocery.com', role: 'CUSTOMER', name: 'Customer User' }
-      };
+      const response = await fetch('http://localhost:8080/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: userData.email,
+          password: userData.password
+        })
+      });
 
-      const authenticatedUser = mockUsers[userData.email];
-      
-      if (authenticatedUser && userData.password === 'password') {
-        const token = 'mock-jwt-token-' + Date.now();
+      if (response.ok) {
+        const authResponse = await response.json();
         
-        localStorage.setItem('user', JSON.stringify(authenticatedUser));
-        localStorage.setItem('token', token);
+        const user = {
+          email: userData.email,
+          role: authResponse.role
+        };
         
-        setUser(authenticatedUser);
-        return { success: true, user: authenticatedUser };
+        localStorage.setItem('user', JSON.stringify(user));
+        localStorage.setItem('token', authResponse.token);
+        
+        setUser(user);
+        return { success: true, user };
       } else {
-        return { success: false, message: 'Invalid credentials' };
+        const errorMessage = await response.text();
+        return { success: false, message: errorMessage };
       }
     } catch (error) {
       console.error('Login error:', error);
-      return { success: false, message: 'Login failed' };
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        return { success: false, message: 'Cannot connect to server. Please ensure the backend is running on http://localhost:8080' };
+      }
+      return { success: false, message: 'Network error. Please try again.' };
     } finally {
       setIsLoading(false);
     }
@@ -85,26 +96,40 @@ export const AuthProvider = ({ children }) => {
     try {
       setIsLoading(true);
       
-      const newUser = {
-        id: Date.now(),
-        name: userData.name,
-        email: userData.email,
-        role: 'CUSTOMER'
-      };
+      const response = await fetch('http://localhost:8080/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: userData.name,
+          email: userData.email,
+          password: userData.password,
+          role: userData.role,
+          address: userData.address || ''
+        })
+      });
 
-      const token = 'mock-jwt-token-' + Date.now();
-      
-      localStorage.setItem('user', JSON.stringify(newUser));
-      localStorage.setItem('token', token);
-      
-      setUser(newUser);
-      return { success: true, user: newUser };
+      if (response.ok) {
+        const message = await response.text();
+        return { success: true, message };
+      } else {
+        const errorMessage = await response.text();
+        return { success: false, message: errorMessage };
+      }
     } catch (error) {
       console.error('Registration error:', error);
-      return { success: false, message: 'Registration failed' };
+      if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        return { success: false, message: 'Cannot connect to server. Please ensure the backend is running on http://localhost:8080' };
+      }
+      return { success: false, message: 'Network error. Please try again.' };
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const getAuthToken = () => {
+    return localStorage.getItem('token');
   };
 
   const value = {
@@ -113,6 +138,7 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     register,
+    getAuthToken,
     isAuthenticated: !!user
   };
 

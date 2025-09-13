@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, AlertCircle, CheckCircle, MapPin, UserCheck } from 'lucide-react';
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
-    confirmPassword: ''
+    confirmPassword: '',
+    role: 'CUSTOMER',
+    address: ''
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -57,7 +59,9 @@ const RegisterPage = () => {
     try {
       const result = await register(formData);
       if (result.success) {
-        navigate('/');
+        // Show success message and redirect to login
+        alert('Registration successful! Please login with your credentials.');
+        navigate('/login');
       } else {
         setError(result.message || 'Registration failed');
       }
@@ -198,41 +202,57 @@ const RegisterPage = () => {
               {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
             </button>
           </div>
-          {formData.confirmPassword && (
-            <div className="mt-2 flex items-center space-x-2">
-              {formData.password === formData.confirmPassword ? (
-                <>
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  <span className="text-xs text-green-600">Passwords match</span>
-                </>
-              ) : (
-                <>
-                  <AlertCircle className="w-4 h-4 text-red-500" />
-                  <span className="text-xs text-red-600">Passwords do not match</span>
-                </>
-              )}
+          {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+            <div className="flex items-center space-x-2 text-red-600 mt-2">
+              <AlertCircle className="w-4 h-4" />
+              <span className="text-sm">Passwords do not match</span>
+            </div>
+          )}
+          {formData.confirmPassword && formData.password === formData.confirmPassword && formData.confirmPassword.length > 0 && (
+            <div className="flex items-center space-x-2 text-green-600 mt-2">
+              <CheckCircle className="w-4 h-4" />
+              <span className="text-sm">Passwords match</span>
             </div>
           )}
         </div>
 
-        <div className="flex items-center">
-          <input
-            id="terms"
-            name="terms"
-            type="checkbox"
-            required
-            className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 border-gray-300 rounded"
-          />
-          <label htmlFor="terms" className="ml-2 block text-sm text-gray-700">
-            I agree to the{' '}
-            <Link to="/terms" className="text-emerald-600 hover:text-emerald-500 font-medium">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link to="/privacy" className="text-emerald-600 hover:text-emerald-500 font-medium">
-              Privacy Policy
-            </Link>
+        <div>
+          <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-2">
+            Account Type
           </label>
+          <div className="relative">
+            <UserCheck className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <select
+              id="role"
+              name="role"
+              required
+              value={formData.role}
+              onChange={handleChange}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors appearance-none bg-white"
+            >
+              <option value="CUSTOMER">Customer</option>
+              <option value="VENDOR">Vendor</option>
+              <option value="ADMIN">Admin</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
+            Address (Optional)
+          </label>
+          <div className="relative">
+            <MapPin className="absolute left-3 top-3 text-gray-400 w-5 h-5" />
+            <textarea
+              id="address"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              rows={3}
+              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors resize-none"
+              placeholder="Enter your address"
+            />
+          </div>
         </div>
 
         <button
@@ -246,7 +266,7 @@ const RegisterPage = () => {
               <span>Creating account...</span>
             </div>
           ) : (
-            'Create account'
+            'Create Account'
           )}
         </button>
 

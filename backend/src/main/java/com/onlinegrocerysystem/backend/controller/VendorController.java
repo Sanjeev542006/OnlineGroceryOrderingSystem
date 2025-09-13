@@ -31,6 +31,11 @@ public class VendorController {
         return vendorService.getVendorById(id);
     }
 
+    @GetMapping("/user/{email}")
+    public Vendor getVendorByUserEmail(@PathVariable String email) {
+        return vendorService.getVendorByUserEmail(email);
+    }
+
     @PostMapping("/addVendor")
     public String addVendor(@RequestBody Vendor vendor) {
         vendorService.addVendor(vendor);

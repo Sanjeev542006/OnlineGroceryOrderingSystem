@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Package, Plus, Search, Filter, Grid, List } from 'lucide-react';
 import ProductForm from '../components/vendor/ProductForm';
 import ProductCard from '../components/vendor/ProductCard';
-import { mockVendorProducts } from '../../vendorMockData';
+import { useAuth } from '../contexts/AuthContext';
+import { api } from '../utils/api';
 
 const VendorProducts = () => {
   const [products, setProducts] = useState([]);
@@ -33,9 +34,38 @@ const VendorProducts = () => {
     { value: 'out_of_stock', label: 'Out of Stock' }
   ];
 
+  const { user } = useAuth();
+  const [vendorId, setVendorId] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    setProducts(mockVendorProducts);
-    setFilteredProducts(mockVendorProducts);
+    // Use prebuilt products instead of API
+    const prebuiltProducts = [
+      { id: 1, name: "Fresh Apples", description: "Crisp red apples", price: 4.99, stock: 50, imageUrl: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" },
+      { id: 2, name: "Organic Bananas", description: "Sweet organic bananas", price: 2.99, stock: 75, imageUrl: "https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400" },
+      { id: 3, name: "Fresh Milk", description: "Whole milk 1 gallon", price: 3.49, stock: 30, imageUrl: "https://images.unsplash.com/photo-1563636619-e9143da7973b?w=400" },
+      { id: 4, name: "Bread Loaf", description: "Whole wheat bread", price: 2.79, stock: 25, imageUrl: "https://images.unsplash.com/photo-1509440159596-0249088772ff?w=400" },
+      { id: 5, name: "Chicken Breast", description: "Fresh chicken breast", price: 8.99, stock: 20, imageUrl: "https://images.unsplash.com/photo-1604503468506-a8da13d82791?w=400" },
+      { id: 6, name: "Tomatoes", description: "Fresh red tomatoes", price: 3.99, stock: 40, imageUrl: "https://images.unsplash.com/photo-1546470427-e5ac89cd0b31?w=400" },
+      { id: 7, name: "Lettuce", description: "Fresh green lettuce", price: 1.99, stock: 35, imageUrl: "https://images.unsplash.com/photo-1622206151226-18ca2c9ab4a1?w=400" },
+      { id: 8, name: "Orange Juice", description: "Fresh orange juice", price: 4.49, stock: 15, imageUrl: "https://images.unsplash.com/photo-1621506289937-a8e4df240d0b?w=400" },
+      { id: 9, name: "Pasta", description: "Italian pasta", price: 1.99, stock: 60, imageUrl: "https://images.unsplash.com/photo-1551892374-ecf8754cf8b0?w=400" },
+      { id: 10, name: "Rice", description: "Basmati rice 5lb", price: 6.99, stock: 25, imageUrl: "https://images.unsplash.com/photo-1586201375761-83865001e31c?w=400" },
+      { id: 11, name: "Eggs", description: "Farm fresh eggs dozen", price: 3.99, stock: 45, imageUrl: "https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?w=400" },
+      { id: 12, name: "Cheese", description: "Cheddar cheese block", price: 5.99, stock: 20, imageUrl: "https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400" },
+      { id: 13, name: "Yogurt", description: "Greek yogurt", price: 4.99, stock: 30, imageUrl: "https://images.unsplash.com/photo-1488477181946-6428a0291777?w=400" },
+      { id: 14, name: "Carrots", description: "Fresh carrots", price: 2.49, stock: 55, imageUrl: "https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400" },
+      { id: 15, name: "Potatoes", description: "Russet potatoes 5lb", price: 3.99, stock: 40, imageUrl: "https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400" },
+      { id: 16, name: "Onions", description: "Yellow onions", price: 2.99, stock: 50, imageUrl: "https://images.unsplash.com/photo-1508747703725-719777637510?w=400" },
+      { id: 17, name: "Bell Peppers", description: "Mixed bell peppers", price: 4.99, stock: 25, imageUrl: "https://images.unsplash.com/photo-1563565375-f3fdfdbefa83?w=400" },
+      { id: 18, name: "Salmon", description: "Fresh salmon fillet", price: 12.99, stock: 15, imageUrl: "https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?w=400" },
+      { id: 19, name: "Ground Beef", description: "Lean ground beef", price: 7.99, stock: 18, imageUrl: "https://images.unsplash.com/photo-1588347818133-38c4106c7d8d?w=400" },
+      { id: 20, name: "Cereal", description: "Breakfast cereal", price: 4.49, stock: 35, imageUrl: "https://images.unsplash.com/photo-1517686469429-8bdb88b9f907?w=400" }
+    ];
+    
+    setProducts(prebuiltProducts);
+    setFilteredProducts(prebuiltProducts);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -74,7 +104,7 @@ const VendorProducts = () => {
         // Update existing product
         setProducts(prev => prev.map(product =>
           product.id === editingProduct.id
-            ? { ...product, ...productData, updatedAt: new Date().toISOString() }
+            ? { ...product, ...productData }
             : product
         ));
         setEditingProduct(null);
@@ -82,14 +112,7 @@ const VendorProducts = () => {
         // Add new product
         const newProduct = {
           ...productData,
-          id: Date.now(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          totalSold: 0,
-          revenue: 0,
-          status: productData.stockQuantity === 0 ? 'out_of_stock' : 
-                  productData.stockQuantity <= productData.lowStockThreshold ? 'low_stock' : 
-                  productData.status
+          id: Date.now()
         };
         setProducts(prev => [newProduct, ...prev]);
         setIsAddingProduct(false);
@@ -113,27 +136,11 @@ const VendorProducts = () => {
 
   const handleUpdateStock = async (productId, newStock) => {
     try {
-      setProducts(prev => prev.map(product => {
-        if (product.id === productId) {
-          const updatedProduct = {
-            ...product,
-            stockQuantity: newStock,
-            updatedAt: new Date().toISOString()
-          };
-          
-          // Update status based on stock
-          if (newStock === 0) {
-            updatedProduct.status = 'out_of_stock';
-          } else if (newStock <= product.lowStockThreshold) {
-            updatedProduct.status = 'low_stock';
-          } else if (product.status === 'out_of_stock' || product.status === 'low_stock') {
-            updatedProduct.status = 'active';
-          }
-          
-          return updatedProduct;
-        }
-        return product;
-      }));
+      setProducts(prev => prev.map(product => 
+        product.id === productId 
+          ? { ...product, stock: newStock }
+          : product
+      ));
       alert('Stock updated successfully!');
     } catch (error) {
       console.error('Error updating stock:', error);
@@ -300,7 +307,12 @@ const VendorProducts = () => {
         </div>
 
         {/* Products Grid */}
-        {filteredProducts.length === 0 ? (
+        {loading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading products...</p>
+          </div>
+        ) : filteredProducts.length === 0 ? (
           <EmptyProducts />
         ) : (
           <div className={`grid gap-6 ${

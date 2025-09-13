@@ -36,6 +36,8 @@ public class Product {
     @Column(nullable = false)
     private Integer stock;
 
+    private String imageUrl;    
+
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
     private Vendor vendor;

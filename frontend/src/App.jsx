@@ -22,6 +22,7 @@ import RegisterPage from './components/RegisterPage';
 // Import Common Components
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PublicRoute from './components/common/PublicRoute';
+import ConnectionStatus from './components/common/ConnectionStatus';
 
 // Import Pages
 import HomePage from './pages/HomePage';
@@ -67,6 +68,7 @@ function App() {
       <AuthProvider>
         <CartProvider>
           <div className="App">
+          <ConnectionStatus />
           <Routes>
             {/* Public Routes */}
             <Route 

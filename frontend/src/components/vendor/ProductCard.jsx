@@ -1,13 +1,10 @@
 import React, { useState } from 'react';
 import { Edit, Trash2, MoreVertical, Package, DollarSign, Hash } from 'lucide-react';
-import { formatProductStatus, formatProductCategory, formatCurrency, productStatusColors } from '../../../vendorMockData';
 
 const ProductCard = ({ product, onEdit, onDelete, onUpdateStock }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [isUpdatingStock, setIsUpdatingStock] = useState(false);
-  const [newStock, setNewStock] = useState(product.stockQuantity);
-
-  const statusColor = productStatusColors[product.status] || productStatusColors.active;
+  const [newStock, setNewStock] = useState(product.stock);
 
   const handleDelete = () => {
     if (window.confirm(`Are you sure you want to delete "${product.name}"?`)) {
@@ -17,36 +14,41 @@ const ProductCard = ({ product, onEdit, onDelete, onUpdateStock }) => {
   };
 
   const handleStockUpdate = async () => {
-    if (newStock !== product.stockQuantity) {
+    if (newStock !== product.stock) {
       await onUpdateStock(product.id, newStock);
     }
     setIsUpdatingStock(false);
   };
 
   const handleStockCancel = () => {
-    setNewStock(product.stockQuantity);
+    setNewStock(product.stock);
     setIsUpdatingStock(false);
   };
 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden hover:shadow-md transition-shadow">
       {/* Product Image */}
-      <div className="relative h-48">
+      <div className="h-48 bg-gray-200">
         <img
-          src={product.image}
+          src={product.imageUrl}
           alt={product.name}
           className="w-full h-full object-cover"
+          onError={(e) => {
+            e.target.src = 'https://via.placeholder.com/400x300/e5e7eb/6b7280?text=No+Image';
+          }}
         />
-        <div className="absolute top-3 right-3 flex space-x-2">
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${statusColor.bg} ${statusColor.text} ${statusColor.border} border`}>
-            {formatProductStatus(product.status)}
-          </span>
+      </div>
+      
+      {/* Product Header */}
+      <div className="p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between">
+          <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
           
           {/* Three-dot menu */}
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="p-1 bg-white/90 hover:bg-white rounded-full shadow-sm transition-colors"
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
             >
               <MoreVertical className="w-4 h-4 text-gray-600" />
             </button>
@@ -88,19 +90,12 @@ const ProductCard = ({ product, onEdit, onDelete, onUpdateStock }) => {
 
       {/* Product Details */}
       <div className="p-4">
-        <div className="mb-2">
-          <h3 className="font-semibold text-gray-900 text-lg">{product.name}</h3>
-          <p className="text-sm text-gray-600 mt-1">{formatProductCategory(product.category)}</p>
-        </div>
-
-        <p className="text-gray-600 text-sm mb-3 line-clamp-2">{product.description}</p>
+        <p className="text-gray-600 text-sm mb-3">{product.description}</p>
 
         {/* Pricing */}
         <div className="flex items-center space-x-2 mb-3">
-          <span className="text-lg font-bold text-gray-900">{formatCurrency(product.price)}</span>
-          {product.originalPrice && product.originalPrice > product.price && (
-            <span className="text-sm text-gray-500 line-through">{formatCurrency(product.originalPrice)}</span>
-          )}
+          <DollarSign className="w-4 h-4 text-gray-500" />
+          <span className="text-lg font-bold text-gray-900">${product.price}</span>
         </div>
 
         {/* Stock Information */}
@@ -131,25 +126,13 @@ const ProductCard = ({ product, onEdit, onDelete, onUpdateStock }) => {
               </div>
             ) : (
               <span className={`text-sm font-medium ${
-                product.stockQuantity === 0 ? 'text-red-600' :
-                product.stockQuantity <= product.lowStockThreshold ? 'text-orange-600' :
+                product.stock === 0 ? 'text-red-600' :
+                product.stock <= 10 ? 'text-orange-600' :
                 'text-green-600'
               }`}>
-                {product.stockQuantity} in stock
+                {product.stock} in stock
               </span>
             )}
-          </div>
-        </div>
-
-        {/* Performance Metrics */}
-        <div className="grid grid-cols-2 gap-4 pt-3 border-t border-gray-200">
-          <div className="text-center">
-            <p className="text-sm text-gray-600">Total Sold</p>
-            <p className="font-semibold text-gray-900">{product.totalSold}</p>
-          </div>
-          <div className="text-center">
-            <p className="text-sm text-gray-600">Revenue</p>
-            <p className="font-semibold text-gray-900">{formatCurrency(product.revenue)}</p>
           </div>
         </div>
 
