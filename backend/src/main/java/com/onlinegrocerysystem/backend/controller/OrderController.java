@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.onlinegrocerysystem.backend.dto.OrderDto;
 import com.onlinegrocerysystem.backend.entity.Order;
 import com.onlinegrocerysystem.backend.service.OrderService;
 
@@ -34,8 +35,8 @@ public class OrderController {
     }
 
     @PostMapping("/placeOrder")
-    public String placeOrder(@RequestBody Order order) {
-        orderService.placeOrder(order);
+    public String placeOrder(@RequestBody OrderDto orderDto) {
+        orderService.placeOrder(orderDto);
         return "Order placed successfully";
     }
 
@@ -43,6 +44,16 @@ public class OrderController {
     public String updateOrderStatus(@PathVariable Long id, @RequestParam String status) {
         orderService.updateStatus(id, status);
         return "Order status updated successfully";
+    }
+
+    @GetMapping("/vendor/{vendorId}")
+    public List<Order> getOrdersByVendor(@PathVariable Long vendorId) {
+        return orderService.getOrdersByVendor(vendorId);
+    }
+
+    @GetMapping("/customer/{customerId}")
+    public List<Order> getOrdersByCustomer(@PathVariable Long customerId) {
+        return orderService.getOrdersByCustomer(customerId);
     }
 
     @DeleteMapping("/deleteOrder/{id}")

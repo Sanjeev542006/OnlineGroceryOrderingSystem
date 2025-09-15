@@ -31,10 +31,11 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         .authorizeHttpRequests(auth -> auth
             .requestMatchers("/auth/**").permitAll() // login/register allowed
-            .requestMatchers("/users/**").hasRole("ADMIN") // only admins
-            .requestMatchers("/products/addProduct").hasAnyRole("VENDOR","ADMIN")
-            .requestMatchers("/products/vendor/**").hasAnyRole("VENDOR","ADMIN")
-            .requestMatchers("/vendors/user/**").hasAnyRole("VENDOR","ADMIN")
+            .requestMatchers("/products/**").permitAll() // allow all product operations for now
+            .requestMatchers("/vendors/**").permitAll() // allow all vendor operations for now
+            .requestMatchers("/users/**").permitAll() // temporarily allow all for testing
+            .requestMatchers("/dashboard/**").permitAll() // allow dashboard access
+            .requestMatchers("/orders/**").permitAll() // allow orders access
             .requestMatchers("/orders/placeOrder").hasRole("CUSTOMER")
             .anyRequest().authenticated()
         );
@@ -46,7 +47,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://localhost:5173"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
         

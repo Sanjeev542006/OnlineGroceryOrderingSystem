@@ -7,8 +7,18 @@ const ProductForm = ({ product, onSave, onCancel }) => {
     description: product?.description || '',
     price: product?.price || '',
     stock: product?.stock || '',
-    imageUrl: product?.imageUrl || ''
+    imageUrl: product?.imageUrl || '',
+    category: product?.category || ''
   });
+
+  const categories = [
+    'Fruits & Vegetables',
+    'Dairy & Eggs',
+    'Meat & Seafood',
+    'Bakery',
+    'Beverages',
+    'Snacks'
+  ];
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
 
@@ -35,6 +45,10 @@ const ProductForm = ({ product, onSave, onCancel }) => {
 
     if (!formData.imageUrl || !formData.imageUrl.trim()) {
       newErrors.imageUrl = 'Product image URL is required';
+    }
+
+    if (!formData.category || !formData.category.trim()) {
+      newErrors.category = 'Product category is required';
     }
 
     console.log('Form validation errors:', newErrors);
@@ -140,6 +154,30 @@ const ProductForm = ({ product, onSave, onCancel }) => {
             />
           </div>
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description}</p>}
+        </div>
+
+        {/* Category */}
+        <div>
+          <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
+            Category *
+          </label>
+          <select
+            id="category"
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-colors ${
+              errors.category ? 'border-red-300' : 'border-gray-300'
+            }`}
+          >
+            <option value="">Select a category</option>
+            {categories.map(category => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
+          {errors.category && <p className="mt-1 text-sm text-red-600">{errors.category}</p>}
         </div>
 
 

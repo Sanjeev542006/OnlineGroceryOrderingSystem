@@ -99,8 +99,44 @@ const ProductsPage = () => {
   ];
 
   useEffect(() => {
-    setProducts(mockProducts);
-    setFilteredProducts(mockProducts);
+    const fetchProducts = async () => {
+      try {
+        console.log('Fetching products from API...');
+        const response = await fetch('http://localhost:8080/products');
+        console.log('Products response status:', response.status);
+        
+        if (response.ok) {
+          const productData = await response.json();
+          console.log('Fetched products:', productData);
+          
+          const formattedProducts = productData.map(product => ({
+            id: product.id,
+            name: product.name,
+            category: product.category || 'General',
+            price: parseFloat(product.price),
+            originalPrice: parseFloat(product.price) + 1,
+            image: product.imageUrl || 'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=300&h=300&fit=crop',
+            rating: 4.5,
+            reviews: 50,
+            inStock: product.stock > 0,
+            description: product.description || 'Fresh quality product'
+          }));
+          
+          setProducts(formattedProducts);
+          setFilteredProducts(formattedProducts);
+        } else {
+          console.error('Failed to fetch products, using mock data');
+          setProducts(mockProducts);
+          setFilteredProducts(mockProducts);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        setProducts(mockProducts);
+        setFilteredProducts(mockProducts);
+      }
+    };
+    
+    fetchProducts();
   }, []);
 
   useEffect(() => {

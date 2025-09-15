@@ -25,7 +25,11 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(name = "total_amount")
     private Double totalPrice;
+
+    @Column(name = "order_date")
+    private String orderDate;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

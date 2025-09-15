@@ -14,6 +14,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Data
@@ -40,9 +41,11 @@ public class User {
     private String address;
 
     @OneToOne(mappedBy = "user",cascade=CascadeType.ALL)
+    @JsonIgnore
     private Vendor vendor;
 
     @OneToMany(mappedBy = "customer",cascade=CascadeType.ALL)
+    @JsonIgnore
     private List<Order> orders;
 
 }

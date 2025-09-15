@@ -9,18 +9,56 @@ import { ArrowLeft, ShoppingCart } from 'lucide-react';
 
 const CartPage = () => {
   const { user } = useAuth();
-  const { cartItems, clearCart } = useCart();
+  const { cartItems, clearCart, getCartSubtotal, getTaxAmount, getShippingCost, getFinalTotal } = useCart();
   const navigate = useNavigate();
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (!user) {
       // Redirect to login if not authenticated
       navigate('/login', { state: { from: { pathname: '/cart' } } });
       return;
     }
     
-    // For now, just show an alert - in a real app, this would navigate to checkout
-    alert('Checkout functionality would be implemented here!');
+    try {
+      // Get user ID (for now using ID 2 as customer)
+      const customerId = 2;
+      
+      // Calculate total
+      const total = getFinalTotal();
+      
+      // Create order with items
+      const orderData = {
+        customerId: customerId,
+        orderDate: new Date().toISOString(),
+        status: 'PENDING',
+        totalAmount: total,
+        items: cartItems.map(item => ({
+          productId: item.id,
+          quantity: item.quantity || 1,
+          price: item.price
+        }))
+      };
+      
+      console.log('Placing order:', orderData);
+      const response = await fetch('http://localhost:8080/orders/placeOrder', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(orderData)
+      });
+      
+      if (response.ok) {
+        clearCart();
+        alert('Order placed successfully!');
+        navigate('/orders');
+      } else {
+        alert('Failed to place order. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error placing order:', error);
+      alert('Failed to place order. Please try again.');
+    }
   };
 
   const handleClearCart = () => {

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -23,7 +24,10 @@ public class VendorController {
 
     @GetMapping
     public List<Vendor> getAllVendors() {
-        return vendorService.getAllVendors();
+        System.out.println("Getting all vendors...");
+        List<Vendor> vendorList = vendorService.getAllVendors();
+        System.out.println("Found " + vendorList.size() + " vendors");
+        return vendorList;
     }
 
     @GetMapping("/{id}")
@@ -40,6 +44,24 @@ public class VendorController {
     public String addVendor(@RequestBody Vendor vendor) {
         vendorService.addVendor(vendor);
         return "Vendor added successfully";
+    }
+
+    @PatchMapping("/{id}/approve")
+    public String approveVendor(@PathVariable Long id) {
+        vendorService.updateVendorStatus(id, Vendor.VendorStatus.APPROVED);
+        return "Vendor approved successfully";
+    }
+
+    @PatchMapping("/{id}/reject")
+    public String rejectVendor(@PathVariable Long id) {
+        vendorService.updateVendorStatus(id, Vendor.VendorStatus.REJECTED);
+        return "Vendor rejected successfully";
+    }
+
+    @PatchMapping("/{id}/suspend")
+    public String suspendVendor(@PathVariable Long id) {
+        vendorService.updateVendorStatus(id, Vendor.VendorStatus.SUSPENDED);
+        return "Vendor suspended successfully";
     }
 
     @DeleteMapping("/deleteVendor/{id}")

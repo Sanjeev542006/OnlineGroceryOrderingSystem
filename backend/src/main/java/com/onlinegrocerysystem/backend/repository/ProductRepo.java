@@ -7,4 +7,5 @@ import com.onlinegrocerysystem.backend.entity.Product;
 
 public interface ProductRepo extends JpaRepository<Product, Long> {
     List<Product> findByVendorId(Long vendorId);
+    long countByVendorId(Long vendorId);
 }

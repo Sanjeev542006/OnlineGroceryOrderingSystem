@@ -31,6 +31,14 @@ public class VendorService {
         vendorRepository.save(vendor);
     }
 
+    public void updateVendorStatus(Long id, Vendor.VendorStatus status) {
+        Vendor vendor = vendorRepository.findById(id).orElse(null);
+        if (vendor != null) {
+            vendor.setStatus(status);
+            vendorRepository.save(vendor);
+        }
+    }
+
     public void deleteVendor(Long id) {
         vendorRepository.deleteById(id);
     }

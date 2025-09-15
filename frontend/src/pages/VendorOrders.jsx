@@ -27,8 +27,52 @@ const VendorOrders = () => {
   ];
 
   useEffect(() => {
-    setOrders(mockVendorOrders);
-    setFilteredOrders(mockVendorOrders);
+    const fetchOrders = async () => {
+      try {
+        // For now using vendorId = 1, in real app get from auth context
+        const vendorId = 1;
+        console.log('Fetching orders for vendor:', vendorId);
+        const response = await fetch(`http://localhost:8080/orders/vendor/${vendorId}`);
+        console.log('Orders API response status:', response.status);
+        if (response.ok) {
+          const orderData = await response.json();
+          console.log('Fetched orders:', orderData);
+          
+          // Transform backend data to match frontend expectations
+          const formattedOrders = orderData.map(order => ({
+            id: order.id,
+            orderNumber: `ORD-${order.id.toString().padStart(6, '0')}`,
+            customerName: order.customer?.name || 'Unknown Customer',
+            customerEmail: order.customer?.email || '',
+            orderDate: order.orderDate || new Date().toISOString(),
+            status: order.status?.toLowerCase() || 'pending',
+            totalAmount: order.totalAmount || 0,
+            items: order.orderItems?.map(item => ({
+              id: item.id,
+              name: item.product?.name || 'Unknown Product',
+              quantity: item.quantity,
+              price: item.price,
+              total: item.quantity * item.price
+            })) || [],
+            deliveryAddress: order.customer?.address || 'No address provided'
+          }));
+          
+          console.log('Setting orders:', formattedOrders);
+          setOrders(formattedOrders);
+          setFilteredOrders(formattedOrders);
+        } else {
+          console.error('Failed to fetch orders');
+          setOrders([]);
+          setFilteredOrders([]);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        setOrders([]);
+        setFilteredOrders([]);
+      }
+    };
+    
+    fetchOrders();
   }, []);
 
   useEffect(() => {

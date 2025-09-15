@@ -28,8 +28,16 @@ public class UserController {
     UserService users;
 
     @GetMapping
-    public List<User> getMethodName() {
-        return users.getAllUser();
+    public List<User> getAllUsers() {
+        System.out.println("Getting all users...");
+        List<User> userList = users.getAllUser();
+        System.out.println("Found " + userList.size() + " users");
+        return userList;
+    }
+    
+    @GetMapping("/test")
+    public String testEndpoint() {
+        return "Users endpoint is working!";
     }
     
     @GetMapping("/paging")

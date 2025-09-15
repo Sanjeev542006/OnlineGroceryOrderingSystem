@@ -8,11 +8,13 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.onlinegrocerysystem.backend.dto.ProductDto;
 import com.onlinegrocerysystem.backend.entity.Product;
 import com.onlinegrocerysystem.backend.service.ProductService;
 
@@ -24,8 +26,8 @@ public class ProductController {
     private ProductService productService;
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public List<ProductDto> getAllProducts() {
+        return productService.getAllProductsDto();
     }
 
     @GetMapping("/paging")
@@ -41,9 +43,13 @@ public class ProductController {
     }
 
     @PostMapping("/addProduct")
-    public String addProduct(@RequestBody Product product, @RequestParam Long vendorId) {
-        productService.addProduct(product, vendorId);
-        return "Product added successfully";
+    public String addProduct(@RequestBody ProductDto productDto, @RequestParam Long vendorId) {
+        try {
+            productService.addProduct(productDto, vendorId);
+            return "Product added successfully";
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to add product: " + e.getMessage());
+        }
     }
 
     @GetMapping("/vendor/{vendorId}")
@@ -55,5 +61,11 @@ public class ProductController {
     public String deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
         return "Product deleted successfully";
+    }
+
+    @PutMapping("/updateProduct/{id}")
+    public String updateProduct(@PathVariable Long id, @RequestBody Product product) {
+        productService.updateProduct(id, product);
+        return "Product updated successfully";
     }
 }

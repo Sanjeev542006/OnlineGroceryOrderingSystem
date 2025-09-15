@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Search, Filter, Download, Grid, List } from 'lucide-react';
 import UserCard from '../components/admin/UserCard';
-import { mockUsers } from '../../adminMockData';
+
 
 const AdminUsers = () => {
   const [users, setUsers] = useState([]);
@@ -27,8 +27,38 @@ const AdminUsers = () => {
   ];
 
   useEffect(() => {
-    setUsers(mockUsers);
-    setFilteredUsers(mockUsers);
+    const fetchUsers = async () => {
+      try {
+        console.log('Fetching users from API...');
+        const response = await fetch('http://localhost:8080/users');
+        console.log('Response status:', response.status);
+        
+        if (response.ok) {
+          const userData = await response.json();
+          console.log('Fetched users:', userData);
+          
+          const formattedUsers = userData.map(user => ({
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            phone: user.phone || 'N/A',
+            status: 'active',
+            isVerified: true,
+            registrationDate: new Date().toISOString().split('T')[0],
+            totalOrders: 0,
+            totalSpent: 0
+          }));
+          
+          setUsers(formattedUsers);
+          setFilteredUsers(formattedUsers);
+        } else {
+          console.error('Failed to fetch users:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching users:', error);
+      }
+    };
+    fetchUsers();
   }, []);
 
   useEffect(() => {
@@ -71,6 +101,7 @@ const AdminUsers = () => {
 
   const handleUpdateStatus = async (userId, status) => {
     try {
+      // Update local state immediately for better UX
       setUsers(prev => prev.map(user =>
         user.id === userId ? { ...user, status } : user
       ));
@@ -96,9 +127,18 @@ const AdminUsers = () => {
   };
 
   const handleDeleteUser = async (userId) => {
+    if (!confirm('Are you sure you want to delete this user?')) return;
+    
     try {
-      setUsers(prev => prev.filter(user => user.id !== userId));
-      alert('User deleted successfully');
+      const response = await fetch(`http://localhost:8080/users/deleteUser/${userId}`, {
+        method: 'DELETE'
+      });
+      if (response.ok) {
+        setUsers(prev => prev.filter(user => user.id !== userId));
+        alert('User deleted successfully');
+      } else {
+        alert('Failed to delete user');
+      }
     } catch (error) {
       console.error('Error deleting user:', error);
       alert('Failed to delete user');
@@ -153,6 +193,33 @@ const AdminUsers = () => {
             <div>
               <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
               <p className="text-gray-600">Manage customer accounts and user data</p>
+              <div className="flex gap-2">
+                <button 
+                  onClick={() => {
+                    fetch('http://localhost:8080/users/test')
+                      .then(r => r.text())
+                      .then(data => alert(data))
+                      .catch(e => alert('Error: ' + e.message));
+                  }}
+                  className="bg-blue-500 text-white px-3 py-1 rounded text-sm"
+                >
+                  Test API
+                </button>
+                <button 
+                  onClick={() => {
+                    fetch('http://localhost:8080/users')
+                      .then(r => r.json())
+                      .then(data => {
+                        console.log('Users data:', data);
+                        alert('Found ' + data.length + ' users. Check console for details.');
+                      })
+                      .catch(e => alert('Error: ' + e.message));
+                  }}
+                  className="bg-green-500 text-white px-3 py-1 rounded text-sm"
+                >
+                  Test Users API
+                </button>
+              </div>
             </div>
           </div>
           

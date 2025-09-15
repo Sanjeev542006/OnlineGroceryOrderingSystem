@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Store, Search, Filter, Download, Grid, List } from 'lucide-react';
 import VendorCard from '../components/admin/VendorCard';
-import { mockVendors } from '../../adminMockData';
+
 
 const AdminVendors = () => {
   const [vendors, setVendors] = useState([]);
@@ -27,8 +27,40 @@ const AdminVendors = () => {
   ];
 
   useEffect(() => {
-    setVendors(mockVendors);
-    setFilteredVendors(mockVendors);
+    const fetchVendors = async () => {
+      try {
+        console.log('Fetching vendors from API...');
+        const response = await fetch('http://localhost:8080/vendors');
+        console.log('Vendors response status:', response.status);
+        
+        if (response.ok) {
+          const vendorData = await response.json();
+          console.log('Fetched vendors:', vendorData);
+          
+          const formattedVendors = vendorData.map(vendor => ({
+            id: vendor.id,
+            businessName: vendor.name,
+            name: vendor.user?.name || 'N/A',
+            email: vendor.user?.email || 'N/A',
+            phone: 'N/A',
+            status: vendor.status?.toLowerCase() || 'pending',
+            isVerified: vendor.status === 'APPROVED',
+            registrationDate: new Date().toISOString().split('T')[0],
+            totalRevenue: 0,
+            totalOrders: 0,
+            rating: 0
+          }));
+          
+          setVendors(formattedVendors);
+          setFilteredVendors(formattedVendors);
+        } else {
+          console.error('Failed to fetch vendors:', response.status, response.statusText);
+        }
+      } catch (error) {
+        console.error('Error fetching vendors:', error);
+      }
+    };
+    fetchVendors();
   }, []);
 
   useEffect(() => {
@@ -74,12 +106,19 @@ const AdminVendors = () => {
 
   const handleApproveVendor = async (vendorId) => {
     try {
-      setVendors(prev => prev.map(vendor =>
-        vendor.id === vendorId 
-          ? { ...vendor, status: 'approved', approvalDate: new Date().toISOString() }
-          : vendor
-      ));
-      alert('Vendor approved successfully');
+      const response = await fetch(`http://localhost:8080/vendors/${vendorId}/approve`, {
+        method: 'PATCH'
+      });
+      if (response.ok) {
+        setVendors(prev => prev.map(vendor =>
+          vendor.id === vendorId 
+            ? { ...vendor, status: 'approved', isVerified: true, approvalDate: new Date().toISOString() }
+            : vendor
+        ));
+        alert('Vendor approved successfully');
+      } else {
+        alert('Failed to approve vendor');
+      }
     } catch (error) {
       console.error('Error approving vendor:', error);
       alert('Failed to approve vendor');
@@ -88,12 +127,19 @@ const AdminVendors = () => {
 
   const handleRejectVendor = async (vendorId, reason) => {
     try {
-      setVendors(prev => prev.map(vendor =>
-        vendor.id === vendorId 
-          ? { ...vendor, status: 'rejected', rejectionReason: reason }
-          : vendor
-      ));
-      alert('Vendor rejected successfully');
+      const response = await fetch(`http://localhost:8080/vendors/${vendorId}/reject`, {
+        method: 'PATCH'
+      });
+      if (response.ok) {
+        setVendors(prev => prev.map(vendor =>
+          vendor.id === vendorId 
+            ? { ...vendor, status: 'rejected', isVerified: false, rejectionReason: reason }
+            : vendor
+        ));
+        alert('Vendor rejected successfully');
+      } else {
+        alert('Failed to reject vendor');
+      }
     } catch (error) {
       console.error('Error rejecting vendor:', error);
       alert('Failed to reject vendor');
@@ -102,12 +148,19 @@ const AdminVendors = () => {
 
   const handleSuspendVendor = async (vendorId, reason) => {
     try {
-      setVendors(prev => prev.map(vendor =>
-        vendor.id === vendorId 
-          ? { ...vendor, status: 'suspended', suspensionReason: reason }
-          : vendor
-      ));
-      alert('Vendor suspended successfully');
+      const response = await fetch(`http://localhost:8080/vendors/${vendorId}/suspend`, {
+        method: 'PATCH'
+      });
+      if (response.ok) {
+        setVendors(prev => prev.map(vendor =>
+          vendor.id === vendorId 
+            ? { ...vendor, status: 'suspended', suspensionReason: reason }
+            : vendor
+        ));
+        alert('Vendor suspended successfully');
+      } else {
+        alert('Failed to suspend vendor');
+      }
     } catch (error) {
       console.error('Error suspending vendor:', error);
       alert('Failed to suspend vendor');

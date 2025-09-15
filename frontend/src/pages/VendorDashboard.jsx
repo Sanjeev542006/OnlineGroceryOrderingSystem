@@ -10,11 +10,81 @@ const VendorDashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAnalytics(mockVendorAnalytics);
+    const fetchVendorData = async () => {
+      try {
+        // For now, using vendorId = 1 as example. In real app, get from auth context
+        const vendorId = 1;
+        console.log('Fetching vendor dashboard data for vendor:', vendorId);
+        const response = await fetch(`http://localhost:8080/dashboard/vendor/${vendorId}`);
+        console.log('Vendor dashboard API response status:', response.status);
+        if (response.ok) {
+          const stats = await response.json();
+          
+          const transformedAnalytics = {
+            totalRevenue: stats.totalRevenue,
+            totalOrders: stats.totalOrders,
+            totalProducts: stats.totalProducts,
+            averageOrderValue: stats.averageOrderValue,
+            revenueGrowth: stats.revenueGrowth,
+            orderGrowth: stats.orderGrowth,
+            revenueThisMonth: stats.revenueThisMonth,
+            ordersThisMonth: stats.ordersThisMonth,
+            ordersByStatus: stats.ordersByStatus,
+            revenueByMonth: [
+              { month: 'Jan', revenue: 2000 },
+              { month: 'Feb', revenue: 2500 },
+              { month: 'Mar', revenue: 3000 },
+              { month: 'Apr', revenue: 2800 },
+              { month: 'May', revenue: 3200 },
+              { month: 'Jun', revenue: 3500 }
+            ],
+            topProducts: [
+              { id: 1, name: 'Sample Product 1', sales: 45, revenue: 1350 },
+              { id: 2, name: 'Sample Product 2', sales: 32, revenue: 960 },
+              { id: 3, name: 'Sample Product 3', sales: 28, revenue: 840 }
+            ]
+          };
+          
+          console.log('Setting vendor analytics:', transformedAnalytics);
+          setAnalytics(transformedAnalytics);
+        } else {
+          console.error('Failed to fetch vendor dashboard data');
+          // Set empty/default analytics instead of mock data
+          setAnalytics({
+            totalRevenue: 0,
+            totalOrders: 0,
+            totalProducts: 0,
+            averageOrderValue: 0,
+            revenueGrowth: 0,
+            orderGrowth: 0,
+            revenueThisMonth: 0,
+            ordersThisMonth: 0,
+            ordersByStatus: { pending: 0, processing: 0, shipped: 0, delivered: 0 },
+            revenueByMonth: [],
+            topProducts: []
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching vendor data:', error);
+        // Set empty/default analytics instead of mock data
+        setAnalytics({
+          totalRevenue: 0,
+          totalOrders: 0,
+          totalProducts: 0,
+          averageOrderValue: 0,
+          revenueGrowth: 0,
+          orderGrowth: 0,
+          revenueThisMonth: 0,
+          ordersThisMonth: 0,
+          ordersByStatus: { pending: 0, processing: 0, shipped: 0, delivered: 0 },
+          revenueByMonth: [],
+          topProducts: []
+        });
+      }
       setIsLoading(false);
-    }, 1000);
+    };
+    
+    fetchVendorData();
   }, []);
 
   if (isLoading) {

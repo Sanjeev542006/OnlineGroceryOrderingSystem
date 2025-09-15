@@ -14,6 +14,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 @Data
@@ -30,6 +31,8 @@ public class Product {
     @Column(columnDefinition="TEXT")
     private String description;
 
+    private String category;
+
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;
 
@@ -40,9 +43,11 @@ public class Product {
 
     @ManyToOne
     @JoinColumn(name = "vendor_id", nullable = false)
+    @JsonIgnore
     private Vendor vendor;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<OrderItem> orderItems;
 
 }

@@ -13,12 +13,53 @@ const AdminDashboard = () => {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setAnalytics(mockSystemAnalytics);
-      setActivities(mockRecentActivities);
+    const fetchDashboardData = async () => {
+      try {
+        const response = await fetch('http://localhost:8080/dashboard/stats');
+        if (response.ok) {
+          const stats = await response.json();
+          
+          const transformedAnalytics = {
+            totalUsers: stats.totalUsers,
+            approvedVendors: stats.approvedVendors,
+            totalOrders: stats.totalOrders,
+            platformRevenue: stats.platformRevenue,
+            userGrowth: stats.userGrowth,
+            vendorGrowth: stats.vendorGrowth,
+            orderGrowth: stats.orderGrowth,
+            revenueGrowth: stats.revenueGrowth,
+            dailyActiveUsers: stats.dailyActiveUsers,
+            newRegistrationsToday: stats.newRegistrationsToday,
+            vendorApplicationsToday: stats.vendorApplicationsToday,
+            pendingVendors: stats.pendingVendors,
+            systemUptime: stats.systemUptime,
+            averageResponseTime: stats.averageResponseTime,
+            topPerformingVendors: [],
+            revenueByMonth: [
+              { month: 'Jan', revenue: 12000, users: 150, orders: 89 },
+              { month: 'Feb', revenue: 15000, users: 180, orders: 112 },
+              { month: 'Mar', revenue: 18000, users: 220, orders: 145 },
+              { month: 'Apr', revenue: 22000, users: 280, orders: 178 },
+              { month: 'May', revenue: 25000, users: 320, orders: 201 },
+              { month: 'Jun', revenue: 28000, users: 380, orders: 234 }
+            ]
+          };
+          
+          setAnalytics(transformedAnalytics);
+          setActivities(mockRecentActivities);
+        } else {
+          setAnalytics(mockSystemAnalytics);
+          setActivities(mockRecentActivities);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        setAnalytics(mockSystemAnalytics);
+        setActivities(mockRecentActivities);
+      }
       setIsLoading(false);
-    }, 1000);
+    };
+    
+    fetchDashboardData();
   }, []);
 
   if (isLoading) {
